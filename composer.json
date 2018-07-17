@@ -1,9 +1,13 @@
 {
     "name": "ygalescot/behat-swarrot-context",
-    "description": "Behat Swarrot Context to test AMQP messages, based on Swarrot library",
+    "description": "Behat Swarrot Context to test AMQP messages, based on Swarrot library and PECL AMQP php extension.",
     "require": {
         "swarrot/swarrot": "^2.4",
-        "behat/behat": "^3.4"
+        "behat/behat": "^3.4",
+        "ext-amqp": "*"
+    },
+    "autoload": {
+        "psr-4": {"Ygalescot\\BehatSwarrotContext\\": "src/"}
     },
     "license": "MIT",
     "authors": [
