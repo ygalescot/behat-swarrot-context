@@ -16,7 +16,7 @@ default:
             ...
             contexts:
                 - ...
-                - Ygalescot\BehatSwarrotContext\Context\SwarrotContext
+                - 'Ygalescot\BehatSwarrotContext\Context\SwarrotContext'
     
 ``` 
 
@@ -38,12 +38,14 @@ default:
             ...
             contexts:
                 - ...
-                - Ygalescot\BehatSwarrotContext\Context\SwarrotContext
+                - 'Ygalescot\BehatSwarrotContext\Context\SwarrotContext':
                     host: your_custom_host
                     ...
 ``` 
 
-Then in your Behat test scenarios you can use these steps:
+## Behat testing
+
+In your Behat test scenarios you can use these steps to test your AMQP Messages:
 
 - `Given I purge queue :queue_name`
 - `Then I consume a message from queue :queue_name`
