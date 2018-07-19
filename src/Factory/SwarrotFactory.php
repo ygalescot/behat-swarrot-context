@@ -15,9 +15,9 @@ class SwarrotFactory
     protected $connection;
 
     /**
-     * @var \AMQPChannel
+     * @var \AMQPExchange
      */
-    protected $channel;
+    protected $exchange;
 
     /**
      * @var \AMQPQueue[]
@@ -49,16 +49,25 @@ class SwarrotFactory
 
     /**
      * @return \AMQPChannel
+     * @throws \AMQPConnectionException
      */
     public function getChannel()
     {
-        $this->connection->reconnect();
+        $this->connection->connect();
 
-        if (null === $this->channel) {
-            $this->channel = new \AMQPChannel($this->connection);
+        return new \AMQPChannel($this->connection);
+    }
+
+    /**
+     * @return \AMQPExchange
+     */
+    public function getExchange()
+    {
+        if (null === $this->exchange) {
+            $this->exchange = new \AMQPExchange($this->getChannel());
         }
 
-        return $this->channel;
+        return $this->exchange;
     }
 
     /**
@@ -68,8 +77,10 @@ class SwarrotFactory
      */
     public function getQueue($queueName)
     {
-        if (null === $this->queues[$queueName]) {
-            $this->queues[$queueName] = (new \AMQPQueue($this->getChannel()))->setName($queueName);
+        if (empty($this->queues[$queueName])) {
+             $queue = new \AMQPQueue($this->getChannel());
+             $queue->setName($queueName);
+             $this->queues[$queueName] = $queue;
         }
 
         return $this->queues[$queueName];
@@ -82,7 +93,7 @@ class SwarrotFactory
      */
     public function getMessageProvider($queueName)
     {
-        if (null === $this->messageProviders[$queueName]) {
+        if (empty($this->messageProviders[$queueName])) {
             $this->messageProviders[$queueName] = new PeclPackageMessageProvider($this->getQueue($queueName));
         }
 

@@ -3,9 +3,12 @@
 namespace Ygalescot\BehatSwarrotContext\Context;
 
 use Behat\Behat\Context\Context;
+use Behat\Gherkin\Node\PyStringNode;
 use Swarrot\Processor\ProcessorInterface;
+use Symfony\Component\Yaml\Yaml;
 use Ygalescot\BehatSwarrotContext\Factory\SwarrotFactory;
 use Ygalescot\BehatSwarrotContext\Processor\MessageProcessor;
+use Ygalescot\BehatSwarrotContext\Publisher\MessagePublisher;
 
 class SwarrotContext implements Context
 {
@@ -20,6 +23,11 @@ class SwarrotContext implements Context
     protected $processor;
 
     /**
+     * @var MessagePublisher
+     */
+    protected $publisher;
+
+    /**
      * @param string $host
      * @param int $port
      * @param string $vhost
@@ -30,6 +38,31 @@ class SwarrotContext implements Context
     {
         $this->factory = new SwarrotFactory($host, $port, $vhost, $login, $password);
         $this->processor = new MessageProcessor();
+        $this->publisher = new MessagePublisher($this->factory->getExchange());
+    }
+
+    /**
+     * @Then I set message properties:
+     */
+    public function iSetMessageProperties(PyStringNode $properties)
+    {
+        $this->publisher->setMessageProperties(Yaml::parse($properties->getRaw(), Yaml::PARSE_CUSTOM_TAGS) ?? []);
+    }
+
+    /**
+     * @Then I set message body:
+     */
+    public function iSetMessageBody(PyStringNode $body)
+    {
+        $this->publisher->setMessageBody($body->getRaw());
+    }
+
+    /**
+     * @Then I publish message with routing key :routingKey
+     */
+    public function iPublishMessageWithRoutingKey($routingKey)
+    {
+        $this->publisher->publish($routingKey);
     }
 
     /**
@@ -83,6 +116,15 @@ class SwarrotContext implements Context
     }
 
     /**
+     * @Then print the message properties
+     *
+     */
+    public function printTheMessageProperties()
+    {
+        print_r($this->processor->getMessage()->getProperties());
+    }
+
+    /**
      * @Then the message should have header :header equal to :value
      *
      * @param string $header
@@ -105,6 +147,17 @@ class SwarrotContext implements Context
     public function theMessageBodyShouldContain($body)
     {
         $this->assertContains($body, $this->processor->getMessageBody());
+    }
+
+    /**
+     * @Then the message body should be equal to :body
+     *
+     * @param string $body
+     * @throws \Exception
+     */
+    public function theMessageBodyShouldBeEqualTo($body)
+    {
+        $this->assertEquals($body, $this->processor->getMessageBody());
     }
 
     /**
@@ -138,7 +191,7 @@ class SwarrotContext implements Context
      */
     protected function assertArrayHasKey($key, array $array)
     {
-        if (!array_key_exists($key, $array)) {
+        if (array_key_exists($key, $array)) {
             return true;
         }
 
@@ -158,7 +211,7 @@ class SwarrotContext implements Context
             return true;
         }
 
-        throw new \Exception("$actual does not match expected $expected");
+        throw new \Exception("$actual does not match expected \"$expected\"");
     }
 
     /**
@@ -174,6 +227,6 @@ class SwarrotContext implements Context
             return true;
         }
 
-        throw new \Exception("$item not found in $content");
+        throw new \Exception("$item not found in \"$content\"");
     }
 }

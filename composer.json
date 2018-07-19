@@ -4,6 +4,7 @@
     "require": {
         "swarrot/swarrot": "^2.4",
         "behat/behat": "^3.4",
+        "symfony/yaml": "^3.4",
         "ext-amqp": "*"
     },
     "autoload": {
